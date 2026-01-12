@@ -4,7 +4,6 @@ from barcode.writer import ImageWriter
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from openpyxl.utils import get_column_letter
-from PIL import Image as PILImage
 import tempfile
 
 
@@ -31,7 +30,7 @@ def generate_barcodes_excel():
         col_width = ws.sheet_format.defaultColWidth
     if col_width is None:
         col_width = 8.43
-    cell_width_pixels = int(_excel_col_width_to_pixels(col_width) * 0.98)
+    cell_width_pixels = int(_excel_col_width_to_pixels(col_width))
 
     # Временная директория для хранения изображений штрихкодов
     temp_dir = tempfile.mkdtemp()
@@ -57,10 +56,8 @@ def generate_barcodes_excel():
             # Проверяем, существует ли файл
             if not os.path.exists(barcode_filename_with_ext):
                 raise FileNotFoundError(f"Barcode image was not created: {barcode_filename_with_ext}")
-            
+
             # Открываем изображение и изменяем его размер для соответствия требованиям
-            with PILImage.open(barcode_filename_with_ext) as img:
-                original_width, original_height = img.size
             
             # Устанавливаем высоту строки в 30 мм (в Excel единицы измерения - точки)
             # 30 мм примерно равно 85.04 точкам (1 мм ≈ 2.8346 точек)
@@ -74,16 +71,14 @@ def generate_barcodes_excel():
             # Учитываем, что ширина и высота изображения должны соответствовать размеру ячейки
             cell_height_pixels = int(row_height_points * 1.33)  # 1 pt ≈ 1.33 px
             
-            width_scale = cell_width_pixels / original_width
-            height_scale = cell_height_pixels / original_height
-            
-            new_width = int(original_width * width_scale)
-            new_height = int(original_height * min(height_scale, width_scale))
-            
-            excel_img.width = new_width
-            excel_img.height = new_height
             
             # Добавляем изображение в ячейку
+            # Stretch to cell size with a 2 px margin on each axis.
+            target_width = max(1, cell_width_pixels - 2)
+            target_height = max(1, cell_height_pixels - 2)
+            excel_img.width = target_width
+            excel_img.height = target_height
+
             ws.add_image(excel_img, f'B{i+1}')
             
             # Применяем форматирование ячеек для лучшего центрирования

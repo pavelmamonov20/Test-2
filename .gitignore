@@ -1,1 +1,30 @@
-Nothing should be ignored based on the provided file changes, as they only include Python source files (.py) which are legitimate source code files.
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Generated Excel outputs
+barcodes_CC001_to_CC200.xlsx
+~$*.xlsx
+
+# Logs and OS files
+*.log
+Thumbs.db
+Desktop.ini
+.DS_Store
