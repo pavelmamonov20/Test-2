@@ -72,7 +72,14 @@ def generate_barcodes_excel():
             excel_img.width = new_width
             excel_img.height = new_height
             
+            # Добавляем изображение в ячейку
             ws.add_image(excel_img, f'B{i+1}')
+            
+            # Применяем форматирование ячеек для лучшего центрирования
+            cell = ws[f'B{i+1}']
+            from openpyxl.styles import Alignment
+            # Центрируем содержимое ячейки по горизонтали и вертикали
+            cell.alignment = Alignment(horizontal='center', vertical='center')
     
         # Сохраняем файл
         wb.save('barcodes_CC001_to_CC200.xlsx')
