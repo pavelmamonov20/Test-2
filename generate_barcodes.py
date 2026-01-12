@@ -22,6 +22,17 @@ def generate_barcodes_excel():
     ws.column_dimensions['A'].width = 10
     ws.column_dimensions['B'].width = 30
 
+    def _excel_col_width_to_pixels(width_chars):
+        # Convert Excel column width (char units) to pixels.
+        return int(width_chars * 7 + 5)
+
+    col_width = ws.column_dimensions['B'].width
+    if col_width is None:
+        col_width = ws.sheet_format.defaultColWidth
+    if col_width is None:
+        col_width = 8.43
+    cell_width_pixels = int(_excel_col_width_to_pixels(col_width) * 0.98)
+
     # Временная директория для хранения изображений штрихкодов
     temp_dir = tempfile.mkdtemp()
 
@@ -48,7 +59,8 @@ def generate_barcodes_excel():
                 raise FileNotFoundError(f"Barcode image was not created: {barcode_filename_with_ext}")
             
             # Открываем изображение и изменяем его размер для соответствия требованиям
-            img = PILImage.open(barcode_filename_with_ext)
+            with PILImage.open(barcode_filename_with_ext) as img:
+                original_width, original_height = img.size
             
             # Устанавливаем высоту строки в 30 мм (в Excel единицы измерения - точки)
             # 30 мм примерно равно 85.04 точкам (1 мм ≈ 2.8346 точек)
@@ -60,14 +72,13 @@ def generate_barcodes_excel():
             
             # Масштабируем изображение, чтобы оно поместилось в ячейку
             # Учитываем, что ширина и высота изображения должны соответствовать размеру ячейки
-            cell_width_pixels = 200  # Приблизительно соответствует ширине колонки B
             cell_height_pixels = int(row_height_points * 1.33)  # 1 pt ≈ 1.33 px
             
-            original_width, original_height = img.size
-            scale_factor = min(cell_width_pixels/original_width, cell_height_pixels/original_height)
+            width_scale = cell_width_pixels / original_width
+            height_scale = cell_height_pixels / original_height
             
-            new_width = int(original_width * scale_factor)
-            new_height = int(original_height * scale_factor)
+            new_width = int(original_width * width_scale)
+            new_height = int(original_height * min(height_scale, width_scale))
             
             excel_img.width = new_width
             excel_img.height = new_height
